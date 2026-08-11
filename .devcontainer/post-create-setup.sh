@@ -7,8 +7,6 @@
 CURRENT_USER=$(whoami)
 USER_HOME_DIR="$HOME"
 
-echo "INFO: Ensuring wrangler directory permissions..."
-
 echo "INFO: Restoring or backing up SSH host keys..."
 sudo mkdir -p /var/lib/tailscale/ssh
 if [ -n "$(ls -A /var/lib/tailscale/ssh/ssh_host_* 2>/dev/null)" ]; then
@@ -24,16 +22,8 @@ fi
 
 echo "INFO: Ensuring SSH service is running..."
 sudo service ssh restart
-mkdir -p "$USER_HOME_DIR/.wrangler"
-sudo chown -R "$CURRENT_USER:$CURRENT_USER" "$USER_HOME_DIR/.wrangler"
 
-echo "INFO: Ensuring doppler directory permissions..."
-mkdir -p "$USER_HOME_DIR/.doppler"
-sudo chown -R "$CURRENT_USER:$CURRENT_USER" "$USER_HOME_DIR/.doppler"
 
-echo "INFO: Ensuring gemini directory permissions..."
-mkdir -p "$USER_HOME_DIR/.gemini"
-sudo chown -R "$CURRENT_USER:$CURRENT_USER" "$USER_HOME_DIR/.gemini"
 
 echo "INFO: Creating Oh My Zsh custom directories..."
 mkdir -p "$USER_HOME_DIR/.oh-my-zsh/custom/themes" "$USER_HOME_DIR/.oh-my-zsh/custom/plugins"
@@ -84,6 +74,8 @@ fi
 echo "INFO: Configuring git safe directory..."
 git config --global --add safe.directory /workspaces/nas-port-mcp
 
+echo "INFO: Installing git pre-commit hooks (lint-staged)..."
+(cd /workspaces/nas-port-mcp && npx --yes simple-git-hooks) || echo "WARN: Run 'npx simple-git-hooks' to install hooks manually."
 
 
 
@@ -91,13 +83,7 @@ git config --global --add safe.directory /workspaces/nas-port-mcp
 
 
 
-echo "INFO: Installing specdag globally..."
-npm install -g @japorto100/specdag
 
-if ! pgrep -f "socat TCP-LISTEN:9222" > /dev/null; then
-    echo "Setup bridget to access Chrome DevTools Protocol over a secure tunnel..."
-    sudo start-stop-daemon --start --background --pidfile /var/run/socat-9222.pid --make-pidfile --chuid $(id -un):$(id -gn) --exec /usr/bin/socat -- TCP-LISTEN:9222,fork,bind=127.0.0.1 TCP:host.docker.internal:9222
-fi
 
 echo "INFO: Checking Tailscale status..."
 if ! command -v tailscale &> /dev/null; then
@@ -108,13 +94,6 @@ fi
 if ! pgrep -x tailscaled > /dev/null; then
     echo "INFO: Starting Tailscale daemon..."
     sudo start-stop-daemon --start --background --oknodo --pidfile /var/run/tailscaled.pid --make-pidfile --exec /usr/sbin/tailscaled -- --state=/var/lib/tailscale/tailscaled.state
-fi
-
-echo "INFO: Checking Nanobanana MCP installation..."
-if [ -f "webapp/scripts/install-nanobanana.sh" ]; then
-    bash webapp/scripts/install-nanobanana.sh
-elif [ -f "scripts/install-nanobanana.sh" ]; then
-    bash scripts/install-nanobanana.sh
 fi
 
 echo "INFO: Custom container setup script finished."

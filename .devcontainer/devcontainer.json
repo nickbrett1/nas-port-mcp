@@ -29,18 +29,9 @@
     }
   },
   "mounts": [
-    "source=nas-port-mcp-wrangler-config,target=/home/vscode/.wrangler,type=volume",
-    "source=nas-port-mcp-doppler-config,target=/home/vscode/.doppler,type=volume",
-    "source=gemini-cli-settings,target=/home/vscode/.gemini,type=volume",
     "source=nas-port-mcp-tailscale-state,target=/var/lib/tailscale,type=volume"
   ],
-  "forwardPorts": [
-    8788,
-    8976,
-    36079,
-    33301,
-    37677
-  ],
+  "forwardPorts": [],
   "containerEnv": {
     "LANG": "en_US.UTF-8",
     "LC_ALL": "en_US.UTF-8"
@@ -53,7 +44,8 @@
         "pcassidy75.tmux-integrated",
         "vsc-mermaid.mermaid-preview",
         "ms-python.python",
-        "ms-python.vscode-pylance"
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff"
       ]
     }
   }

@@ -1,3 +1,3 @@
-"""nas-port-mcp: authoritative host-port allocation for the Synology NAS."""
+"""nas-port-mcp package."""
 
 __version__ = "0.1.0"

@@ -1,22 +1,37 @@
 version: 2.1
-
+orbs:
 jobs:
-  test:
+  build:
     docker:
       - image: cimg/python:3.12
+
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-venv-{{ checksum "pyproject.toml" }}
+            - v1-venv-
       - run:
-          name: Install dependencies
+          name: Install Packages
           command: |
-            python -m venv .venv
-            .venv/bin/pip install -e ".[dev]"
+            python3 -m venv .venv
+            echo '. .venv/bin/activate' >> "$BASH_ENV"
+            pip install --upgrade pip
+            pip install -e ".[dev]"
+      - save_cache:
+          paths:
+            - .venv
+          key: v1-venv-{{ checksum "pyproject.toml" }}
+
+
       - run:
-          name: Lint (ruff)
-          command: .venv/bin/ruff check src tests
+          name: Lint (Ruff)
+          command: ruff check src tests
       - run:
           name: Test (pytest)
-          command: .venv/bin/pytest -v
+          command: pytest -v
+
+
 
   docker-publish:
     docker:
@@ -25,7 +40,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: Login to GHCR
+          name: Login to Container Registry
           command: |
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
       - run:
@@ -33,18 +48,19 @@ jobs:
           command: |
             docker buildx create --use || true
             docker buildx build --platform linux/amd64,linux/arm64 --provenance=false \
-              -t ghcr.io/nickbrett1/nas-port-mcp:$CIRCLE_SHA1 \
-              -t ghcr.io/nickbrett1/nas-port-mcp:latest --push .
-
+              -t ghcr.io/nickbrett1/nas-port-mcp:$CIRCLE_SHA1 -t ghcr.io/nickbrett1/nas-port-mcp:latest --push .
 workflows:
   build-and-test:
     jobs:
-      - test:
+      - build:
           context: common
+
+
       - docker-publish:
           context: common
           requires:
-            - test
+            - build
           filters:
             branches:
               only: main
+
