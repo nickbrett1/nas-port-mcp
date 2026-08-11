@@ -1,34 +1,22 @@
 version: 2.1
-orbs:
-  node: circleci/node@5.0.2
 
 jobs:
-  build:
-    executor: node/default
+  test:
+    docker:
+      - image: cimg/python:3.12
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - v1-deps-{{ checksum "package.json" }}
-            - v1-deps-
       - run:
-          name: Install Packages
+          name: Install dependencies
           command: |
-            if [ -f package-lock.json ]; then
-              npm ci
-            else
-              npm install
-            fi
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-deps-{{ checksum "package.json" }}
-
+            python -m venv .venv
+            .venv/bin/pip install -e ".[dev]"
       - run:
-          name: Build
-          command: npm run build
-
-
+          name: Lint (ruff)
+          command: .venv/bin/ruff check src tests
+      - run:
+          name: Test (pytest)
+          command: .venv/bin/pytest -v
 
   docker-publish:
     docker:
@@ -37,7 +25,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: Login to Container Registry
+          name: Login to GHCR
           command: |
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
       - run:
@@ -45,19 +33,18 @@ jobs:
           command: |
             docker buildx create --use || true
             docker buildx build --platform linux/amd64,linux/arm64 --provenance=false \
-              -t ghcr.io/nickbrett1/nas-port-mcp:$CIRCLE_SHA1 -t ghcr.io/nickbrett1/nas-port-mcp:latest --push .
+              -t ghcr.io/nickbrett1/nas-port-mcp:$CIRCLE_SHA1 \
+              -t ghcr.io/nickbrett1/nas-port-mcp:latest --push .
+
 workflows:
   build-and-test:
     jobs:
-      - build:
+      - test:
           context: common
-
-
       - docker-publish:
           context: common
           requires:
-            - build
+            - test
           filters:
             branches:
               only: main
-
