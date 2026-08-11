@@ -1,0 +1,60 @@
+{
+  "name": "Python",
+  "runArgs": [
+    "--sysctl",
+    "net.ipv6.conf.all.disable_ipv6=1",
+    "--cap-add=NET_ADMIN",
+    "--device=/dev/net/tun"
+  ],
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "workspaceFolder": "/workspaces/nas-port-mcp",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode"
+    },
+    "ghcr.io/devcontainers-extra/features/apt-packages:1": {
+      "packages": "socat"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+  "mounts": [
+    "source=nas-port-mcp-wrangler-config,target=/home/vscode/.wrangler,type=volume",
+    "source=nas-port-mcp-doppler-config,target=/home/vscode/.doppler,type=volume",
+    "source=gemini-cli-settings,target=/home/vscode/.gemini,type=volume",
+    "source=nas-port-mcp-tailscale-state,target=/var/lib/tailscale,type=volume"
+  ],
+  "forwardPorts": [
+    8788,
+    8976,
+    36079,
+    33301,
+    37677
+  ],
+  "containerEnv": {
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": "en_US.UTF-8"
+  },
+  "postCreateCommand": "bash .devcontainer/post-create-setup.sh",
+  "postStartCommand": "bash /workspaces/nas-port-mcp/.devcontainer/post-start-setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "pcassidy75.tmux-integrated",
+        "vsc-mermaid.mermaid-preview",
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  }
+}
