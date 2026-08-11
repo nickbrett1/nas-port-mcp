@@ -11,8 +11,8 @@
 
 - nas-port-mcp:
     icon: sh-docker
-    href: http://nas:3001/
+    href: http://localhost:3001/
     description: nas-port-mcp container
     widget:
       type: customapi
-      url: http://nas:3001/healthz
+      url: http://localhost:3001/healthz

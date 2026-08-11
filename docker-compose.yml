@@ -17,11 +17,13 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      - MCP_PORT=${MCP_PORT:-3001}
+      # Set your environment variables here or in a NAS-side .env file
+      # (genproj never commits secrets). See .env.example.
+      MCP_PORT: ${MCP_PORT:-3001}
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
       - "homepage.group=Services"
       - "homepage.name=nas-port-mcp"
-      - "homepage.href=http://nas:3001/"
+      - "homepage.href=http://localhost:3001/"
       - "homepage.widget.type=customapi"
       - "homepage.widget.url=http://localhost:3001/healthz"
