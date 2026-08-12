@@ -42,6 +42,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "doppler.doppler-vscode",
         "pcassidy75.tmux-integrated",
         "vsc-mermaid.mermaid-preview",
         "ms-python.python",
