@@ -13,14 +13,15 @@ _LINE_RE = re.compile(
     r"(?P<state>\S+)\s+"
     r"\d+\s+\d+\s+"
     r"(?P<local>\S+)\s+"
-    r"(?P<peer>\S+)(?:\s+users:\(\"(?P<proc>[^\"]*)\"\))?"
+    r"(?P<peer>\S+)(?:\s+users:\(\("(?P<proc>[^\"]*)\"[^)]*\)\))?"
 )
 
 
 def _parse_local(local: str) -> tuple[str, int] | None:
     """'0.0.0.0:3000' | '[::]:5000' | '*:1900' -> (ip, port)."""
     if local.startswith("["):  # IPv6
-        addr, _, port = local[1:].partition("]")
+        addr, _, rest = local[1:].partition("]")
+        port = rest.lstrip(":")
         return (addr, int(port)) if port.isdigit() else None
     addr, _, port = local.rpartition(":")
     return (addr, int(port)) if port.isdigit() else None

@@ -19,7 +19,7 @@ def collect_docker_ports(socket_path: str = DOCKER_SOCKET) -> list[dict]:
             resp = client.get("/containers/json")
             resp.raise_for_status()
             containers = resp.json()
-    except Exception:
+    except Exception:  # noqa: BLE001 -- degrade to [] on any Docker API error
         return []
 
     ports = []

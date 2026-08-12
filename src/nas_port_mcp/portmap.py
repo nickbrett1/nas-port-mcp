@@ -6,7 +6,6 @@ listening") and only fills ports nothing else claims.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 EPHEMERAL_START = 32768
 EPHEMERAL_END = 60999
@@ -65,7 +64,7 @@ def suggest(
     preferred: int = 3000,
     start: int = 1024,
     end: int = 65535,
-    owners: Optional[dict[int, PortOwner]] = None,
+    owners: dict[int, PortOwner] | None = None,
 ) -> dict:
     """Deterministic next-free port: first free port >= preferred (or >= start
     if preferred is taken), with attribution for why preferred is unavailable."""

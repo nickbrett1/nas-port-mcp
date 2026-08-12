@@ -15,14 +15,14 @@ def _get_json(client: httpx.Client, path: str) -> dict | None:
         resp = client.get(path, timeout=2.0)
         resp.raise_for_status()
         return resp.json()
-    except Exception:
+    except Exception:  # noqa: BLE001 -- netdata is optional; degrade gracefully
         return None
 
 
 def machine_info(netdata_url: str = NETDATA_URL) -> dict:
     try:
         client = httpx.Client(base_url=netdata_url, timeout=2.0)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return {"available": False, "reason": str(exc)}
 
     with client:
