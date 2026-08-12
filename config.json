@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "nas-port-mcp": {
+      "command": "python",
+      "args": ["-m", "nas_port_mcp"]
+    }
+  }
+}

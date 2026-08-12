@@ -26,4 +26,4 @@ services:
       - "homepage.name=nas-port-mcp"
       - "homepage.href=http://localhost:3001/"
       - "homepage.widget.type=customapi"
-      - "homepage.widget.url=http://localhost:3001/healthz"
+      - "homepage.widget.url=http://localhost:3001/openapi.json"
