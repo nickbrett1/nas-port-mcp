@@ -1,4 +1,17 @@
-from nas_port_mcp.server import mcp
+"""Default module entry point (python -m nas_port_mcp).
+
+Override the container command via the genproj docker-container "command"
+configuration option (or "entrypoint") when your application needs a custom
+entry point.
+"""
+
+import sys
+
+
+def main() -> int:
+    print(f"{__package__} is installed and importable.", file=sys.stderr)
+    return 0
+
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    sys.exit(main())

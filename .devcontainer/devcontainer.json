@@ -29,8 +29,7 @@
     }
   },
   "mounts": [
-    "source=nas-port-mcp-tailscale-state,target=/var/lib/tailscale,type=volume",
-    "source=${localEnv:HOME}/.config/goose,target=/home/vscode/.config/goose,type=bind"
+    "source=nas-port-mcp-tailscale-state,target=/var/lib/tailscale,type=volume"
   ],
   "forwardPorts": [],
   "containerEnv": {
