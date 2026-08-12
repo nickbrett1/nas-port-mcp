@@ -78,9 +78,56 @@ echo "INFO: Installing git pre-commit hooks (lint-staged)..."
 (cd /workspaces/nas-port-mcp && npx --yes simple-git-hooks) || echo "WARN: Run 'npx simple-git-hooks' to install hooks manually."
 
 
+echo "INFO: Setting up goose configuration and MCP servers..."
 
+# Create goose config directory
+mkdir -p "$HOME/.config/goose"
 
+# Never overwrite an existing goose config: the user's real config.yaml
+# (provider + extensions) is bind-mounted into the devcontainer. Clobbering it
+# drops the configured provider and surfaces as:
+#   error: No provider configured. Run 'goose configure' first.
+if [ -f "$HOME/.config/goose/config.yaml" ]; then
+    echo "INFO: Keeping existing $HOME/.config/goose/config.yaml (provider + extensions preserved)."
+else
+    echo "INFO: No goose config found yet - run 'goose configure' inside the container to set up your provider."
+fi
 
+echo "INFO: Registering project-selected goose MCP extensions..."
+
+# Idempotently register a project-selected goose MCP extension. Never clobbers:
+# skips keys already present, only appends the missing block under extensions:.
+ensure_goose_extension() {
+  local key="$1" block="$2" config="$HOME/.config/goose/config.yaml"
+  [ -f "$config" ] || { echo "WARN: no goose config yet - project extensions apply after 'goose configure'"; return 0; }
+  grep -qE "^  ${key}:" "$config" && { echo "INFO: goose extension '${key}' already registered."; return 0; }
+  grep -q '^extensions:' "$config" || echo "extensions:" >> "$config"
+  awk -v frag="$block" '/^extensions:/ { print; printf "%s", frag; next } { print }' "$config" > "${config}.tmp" && mv "${config}.tmp" "$config"
+  echo "INFO: Registered goose extension '${key}'."
+}
+
+ensure_goose_extension "circleci" '  circleci:
+    type: stdio
+    name: circleci
+    enabled: true
+    cmd: npx
+    args: ["-y", "@circleci/mcp-server-circleci"]
+    env:
+      CIRCLECI_TOKEN: "${CIRCLECI_TOKEN}"
+      CIRCLE_API_TOKEN: "${CIRCLE_API_TOKEN}"
+    timeout: 300
+'
+
+echo "INFO: Ensuring goose recipes are available (spec-first development process)..."
+RECIPES_DIR="$HOME/.config/goose/recipes"
+if [ -d "$RECIPES_DIR/.git" ]; then
+    (cd "$RECIPES_DIR" && git pull --ff-only --quiet)         || echo "WARN: Could not update goose-recipes (offline or conflict); keeping existing copy."
+else
+    mkdir -p "$HOME/.config/goose"
+    git clone --quiet https://github.com/nickbrett1/goose-recipes.git "$RECIPES_DIR"         || echo "WARN: Could not clone goose-recipes; recipes will be unavailable."
+fi
+
+echo "INFO: goose configuration complete."
 
 
 
