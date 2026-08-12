@@ -1,16 +1,21 @@
-# Automatically heal/resolve VS Code Remote Containers IPC and SSH auth sockets
+# Automatically heal/resolve VS Code Remote Containers IPC and SSH auth sockets.
+# zsh null-glob qualifier (N): unmatched patterns expand to nothing instead of
+# raising "no matches found" errors on startup.
+# TYPESET_SILENT stops `local sockets` from echoing "sockets=(  )" in interactive shells.
+setopt TYPESET_SILENT
 if [ -z "$REMOTE_CONTAINERS_IPC" ] || [ ! -S "$REMOTE_CONTAINERS_IPC" ]; then
-  latest_ipc=$(ls -t /tmp/vscode-remote-containers-ipc-*.sock 2>/dev/null | head -n 1)
-  if [ -n "$latest_ipc" ]; then
-    export REMOTE_CONTAINERS_IPC="$latest_ipc"
+  ipc_socks=(/tmp/vscode-remote-containers-ipc-*.sock(N))
+  if [ ${#ipc_socks[@]} -gt 0 ]; then
+    export REMOTE_CONTAINERS_IPC="$(ls -t "${ipc_socks[@]}" 2>/dev/null | head -n 1)"
   fi
 fi
 if [ -z "$SSH_AUTH_SOCK" ] || [ ! -S "$SSH_AUTH_SOCK" ]; then
-  latest_ssh=$(ls -t /tmp/vscode-ssh-auth-*.sock 2>/dev/null | head -n 1)
-  if [ -n "$latest_ssh" ]; then
-    export SSH_AUTH_SOCK="$latest_ssh"
+  ssh_socks=(/tmp/vscode-ssh-auth-*.sock(N))
+  if [ ${#ssh_socks[@]} -gt 0 ]; then
+    export SSH_AUTH_SOCK="$(ls -t "${ssh_socks[@]}" 2>/dev/null | head -n 1)"
   fi
 fi
+unset ipc_socks ssh_socks
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
