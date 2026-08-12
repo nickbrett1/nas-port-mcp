@@ -73,4 +73,3 @@ workflows:
           filters:
             branches:
               only: main
-
