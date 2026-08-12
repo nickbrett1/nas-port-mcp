@@ -8,8 +8,8 @@ This project includes the following capabilities:
 - **Python DevContainer**: Sets up a VS Code DevContainer with Python environment.
 - **Docker Container**: Containerize the project and publish to the GitHub Container Registry (GHCR) for deployment to a NAS or self-hosted host via Docker Compose. Mutually exclusive with other deployment systems.
 - **CircleCI Integration**: Configures CircleCI for continuous integration and deployment.
-- **Dependabot**: Configures Dependabot for automated dependency updates.
 - **Ruff (Python code quality)**: Adds fast, zero-configuration Python linting with Ruff (rules live in pyproject.toml [tool.ruff] and the CI test job runs `ruff check src tests`). Requires a Python devcontainer.
+- **Dependabot**: Configures Dependabot for automated dependency updates.
 
 ## Setup
 
