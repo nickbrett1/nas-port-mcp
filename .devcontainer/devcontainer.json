@@ -26,11 +26,13 @@
     },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "lts"
-    }
+    },
+    "ghcr.io/devcontainers-contrib/features/doppler-cli:1": {}
   },
   "mounts": [
     "source=nas-port-mcp-tailscale-state,target=/var/lib/tailscale,type=volume",
-    "source=${localEnv:HOME}/.config/goose,target=/home/vscode/.config/goose,type=bind"
+    "source=${localEnv:HOME}/.config/goose,target=/home/vscode/.config/goose,type=bind",
+    "source=${localEnv:HOME}/.doppler,target=/home/vscode/.doppler,type=bind"
   ],
   "forwardPorts": [],
   "containerEnv": {
@@ -47,7 +49,8 @@
         "vsc-mermaid.mermaid-preview",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "charliermarsh.ruff"
+        "charliermarsh.ruff",
+        "ms-azuretools.vscode-docker"
       ]
     }
   }
