@@ -26,8 +26,7 @@
     },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "lts"
-    },
-    "ghcr.io/devcontainers-contrib/features/doppler-cli:1": {}
+    }
   },
   "mounts": [
     "source=nas-port-mcp-tailscale-state,target=/var/lib/tailscale,type=volume",
