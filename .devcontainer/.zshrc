@@ -1,21 +1,16 @@
-# Automatically heal/resolve VS Code Remote Containers IPC and SSH auth sockets.
-# zsh null-glob qualifier (N): unmatched patterns expand to nothing instead of
-# raising "no matches found" errors on startup.
-# TYPESET_SILENT stops `local sockets` from echoing "sockets=(  )" in interactive shells.
-setopt TYPESET_SILENT
+# Automatically heal/resolve VS Code Remote Containers IPC and SSH auth sockets
 if [ -z "$REMOTE_CONTAINERS_IPC" ] || [ ! -S "$REMOTE_CONTAINERS_IPC" ]; then
-  ipc_socks=(/tmp/vscode-remote-containers-ipc-*.sock(N))
-  if [ ${#ipc_socks[@]} -gt 0 ]; then
-    export REMOTE_CONTAINERS_IPC="$(ls -t "${ipc_socks[@]}" 2>/dev/null | head -n 1)"
+  latest_ipc=$(ls -t /tmp/vscode-remote-containers-ipc-*.sock(N) 2>/dev/null | head -n 1)
+  if [ -n "$latest_ipc" ]; then
+    export REMOTE_CONTAINERS_IPC="$latest_ipc"
   fi
 fi
 if [ -z "$SSH_AUTH_SOCK" ] || [ ! -S "$SSH_AUTH_SOCK" ]; then
-  ssh_socks=(/tmp/vscode-ssh-auth-*.sock(N))
-  if [ ${#ssh_socks[@]} -gt 0 ]; then
-    export SSH_AUTH_SOCK="$(ls -t "${ssh_socks[@]}" 2>/dev/null | head -n 1)"
+  latest_ssh=$(ls -t /tmp/vscode-ssh-auth-*.sock(N) 2>/dev/null | head -n 1)
+  if [ -n "$latest_ssh" ]; then
+    export SSH_AUTH_SOCK="$latest_ssh"
   fi
 fi
-unset ipc_socks ssh_socks
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
@@ -137,8 +132,43 @@ fi
 DISABLE_AUTO_UPDATE=true
 DISABLE_UPDATE_PROMPT=true
 
+# A robust function to run Antigravity with Doppler, ensuring no stale SonarQube containers exist.
+# Secrets are loaded from the 'common' project first, then the current project's secrets layer on
+# top (project-specific secrets take precedence over common ones).
+agy-dev() {
+  # Only check for Docker containers if Docker is installed
+  if command -v docker &> /dev/null; then
+    # Define the name of the container to check for
+    local container_name="sonarqube-mcp-server"
 
+    # Find the container ID using Docker's filter. The -q flag means "quiet" (ID only).
+    local container_id=$(docker ps -a -q --filter "name=${container_name}")
 
+    # Check if the container_id variable is not empty
+    if [ -n "$container_id" ]; then
+      echo "Found stale container '${container_name}' ($container_id). Removing it..."
+      # Force remove the container. The -f flag stops it if it's running.
+      docker rm -f "$container_id"
+    fi
+  fi
+
+  echo "Starting Antigravity with Doppler (common + nas-port-mcp)..."
+  # Load common secrets first, then layer project-specific secrets on top.
+  # --forward-signals ensures SIGINT/SIGTERM are correctly passed through to agy.
+  doppler run --project common --config dev -- doppler run --forward-signals --project nas-port-mcp --config dev -- agy "$@"
+}
+# A robust function to run goose with Doppler, ensuring all secrets are available.
+# Secrets are loaded from the 'common' project first, then the 'goose' project's secrets layer on
+# top (project-specific secrets take precedence over common ones).
+# Overrides the bare `goose` binary (which can't work standalone: it needs Doppler secrets).
+goose() {
+  echo "Starting goose with Doppler (common + goose)..."
+  # Load common secrets first, then layer goose project secrets on top.
+  # Uses 'prd' config for the goose project to pick up LITELLM endpoint env vars.
+  # --forward-signals ensures SIGINT/SIGTERM are correctly passed through to goose.
+  # Routes through _wt_ensure so goose runs in this shell's feature worktree.
+  _wt_ensure doppler run --project common --config dev -- doppler run --forward-signals --project goose --config prd -- goose "$@"
+}
 
 # Change directory to the workspace if starting in the home directory
 if [[ "$PWD" == "$HOME" ]]; then
@@ -183,15 +213,15 @@ fi
 
 # Automatically restore VS Code sockets from /tmp if missing or stale
 restore_vscode_sockets() {
-  local current_user
+  # Locals hoisted once (re-declaring `local sockets` / `local socket` per
+  # block echoed `sockets=(  )` noise and left the variables in a weird state).
+  local current_user sockets socket
   current_user=$(whoami)
 
   # 1. REMOTE_CONTAINERS_IPC (Git credential helper socket)
   if [[ -z "$REMOTE_CONTAINERS_IPC" || ! -S "$REMOTE_CONTAINERS_IPC" ]]; then
-    local sockets
     sockets=($(find /tmp -maxdepth 1 -user "$current_user" -type s -name "vscode-remote-containers-ipc-*.sock" 2>/dev/null))
     if [ ${#sockets[@]} -gt 0 ]; then
-      local socket
       socket=$(ls -t "${sockets[@]}" 2>/dev/null | head -n 1)
       if [[ -n "$socket" ]]; then
         export REMOTE_CONTAINERS_IPC="$socket"
@@ -201,10 +231,8 @@ restore_vscode_sockets() {
 
   # 2. SSH_AUTH_SOCK (SSH Agent forwarding socket)
   if [[ -z "$SSH_AUTH_SOCK" || ! -S "$SSH_AUTH_SOCK" ]]; then
-    local sockets
     sockets=($(find /tmp -maxdepth 1 -user "$current_user" -type s -name "vscode-ssh-auth-*.sock" 2>/dev/null))
     if [ ${#sockets[@]} -gt 0 ]; then
-      local socket
       socket=$(ls -t "${sockets[@]}" 2>/dev/null | head -n 1)
       if [[ -n "$socket" ]]; then
         export SSH_AUTH_SOCK="$socket"
@@ -214,10 +242,8 @@ restore_vscode_sockets() {
 
   # 3. VSCODE_IPC_HOOK_CLI (VS Code CLI communication socket)
   if [[ -z "$VSCODE_IPC_HOOK_CLI" || ! -S "$VSCODE_IPC_HOOK_CLI" ]]; then
-    local sockets
     sockets=($(find /tmp -maxdepth 1 -user "$current_user" -type s -name "vscode-ipc-*.sock" 2>/dev/null))
     if [ ${#sockets[@]} -gt 0 ]; then
-      local socket
       socket=$(ls -t "${sockets[@]}" 2>/dev/null | head -n 1)
       if [[ -n "$socket" ]]; then
         export VSCODE_IPC_HOOK_CLI="$socket"

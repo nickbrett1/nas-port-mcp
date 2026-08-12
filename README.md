@@ -5,9 +5,11 @@ A nas-port-mcp project generated with genproj
 
 This project includes the following capabilities:
 
+- **Docker**: Docker support for the project.
 - **Python DevContainer**: Sets up a VS Code DevContainer with Python environment.
 - **Docker Container**: Containerize the project and publish to the GitHub Container Registry (GHCR) for deployment to a NAS or self-hosted host via Docker Compose. Mutually exclusive with other deployment systems.
-- **CircleCI Integration**: Configures CircleCI for continuous integration and deployment.
+- **Doppler Secrets Management**: Integrates Doppler for secure secrets management. Enables the various MCP servers that rely on privileged tokens to access their services (e.g. CircleCI, GitHub, SonarQube).
+- **CircleCI Integration**: Configures CircleCI for continuous integration and deployment. Requires Doppler: the CircleCI MCP server needs CircleCI tokens that are only available through Doppler.
 - **Dependabot**: Configures Dependabot for automated dependency updates.
 - **Ruff (Python code quality)**: Adds fast, zero-configuration Python linting with Ruff (rules live in pyproject.toml [tool.ruff] and the CI test job runs `ruff check src tests`). Requires a Python devcontainer.
 
@@ -28,6 +30,18 @@ This project includes the following capabilities:
    ruff check src tests
    pytest -v
    ```
+
+## Doppler
+
+This project uses Doppler for secrets. First use (links the project and `dev` config):
+
+```bash
+doppler setup --project nas-port-mcp --config dev
+```
+
+The Doppler CLI is installed in the devcontainer — it must be on PATH for the
+VS Code extension and `doppler run` to work. Auth is persisted via the host
+`~/.doppler` bind-mount.
 
 ## Deployment
 

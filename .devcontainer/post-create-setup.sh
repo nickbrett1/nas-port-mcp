@@ -92,6 +92,7 @@ echo "INFO: Installing git pre-commit hooks (lint-staged)..."
 
 
 
+
 echo "INFO: Setting up goose configuration and MCP servers..."
 
 # Create goose config directory
@@ -139,6 +140,7 @@ else
 fi
 
 echo "INFO: goose configuration complete."
+
 
 
 
