@@ -1,0 +1,3 @@
+setup:
+  project: nas-port-mcp
+  config: dev
