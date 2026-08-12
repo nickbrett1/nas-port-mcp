@@ -42,7 +42,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "circleci.circleci",
         "pcassidy75.tmux-integrated",
         "vsc-mermaid.mermaid-preview",
         "ms-python.python",
