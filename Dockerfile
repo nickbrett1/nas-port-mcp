@@ -10,10 +10,9 @@ FROM python:3.12-slim AS build
 WORKDIR /app
 COPY requirements.txt* pyproject.toml* ./
 RUN python -m venv /opt/venv \
-    && /opt/venv/bin/pip install --upgrade pip \
-    && if [ -f requirements.txt ]; then /opt/venv/bin/pip install --no-cache-dir -r requirements.txt; fi
+    && /opt/venv/bin/pip install --upgrade pip
 COPY . .
-RUN if [ ! -f requirements.txt ]; then /opt/venv/bin/pip install --no-cache-dir .; fi
+RUN if [ -f requirements.txt ]; then /opt/venv/bin/pip install --no-cache-dir -r requirements.txt; else /opt/venv/bin/pip install --no-cache-dir .; fi
 
 FROM python:3.12-slim
 WORKDIR /app
