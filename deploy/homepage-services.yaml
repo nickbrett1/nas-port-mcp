@@ -15,4 +15,4 @@
     description: nas-port-mcp container
     widget:
       type: customapi
-      url: http://localhost:3001/healthz
+      url: http://localhost:3001/openapi.json
