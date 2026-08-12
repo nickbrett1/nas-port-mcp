@@ -23,6 +23,18 @@ fi
 echo "INFO: Ensuring SSH service is running..."
 sudo service ssh restart
 
+echo "INFO: Ensuring doppler directory permissions..."
+mkdir -p "$USER_HOME_DIR/.doppler"
+sudo chown -R "$CURRENT_USER:$CURRENT_USER" "$USER_HOME_DIR/.doppler"
+# Round-5 (memo genproj-fixes-round5): guarantee the CLI is on PATH. The
+# Dockerfile installs it for fresh projects, but a regenerated project whose
+# Dockerfile was preserved (round-3 idempotent overwrite) needs the fallback.
+# (A devcontainer feature was tried first but ghcr.io/devcontainers-contrib
+# features are no longer reliably pullable — 'denied'.)
+if ! command -v doppler &> /dev/null; then
+    echo "INFO: Installing Doppler CLI (fallback)..."
+    (curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh || wget -t 3 -qO- https://cli.doppler.com/install.sh) | sudo sh
+fi
 
 
 echo "INFO: Creating Oh My Zsh custom directories..."
@@ -78,6 +90,8 @@ echo "INFO: Installing git pre-commit hooks (lint-staged)..."
 (cd /workspaces/nas-port-mcp && npx --yes simple-git-hooks) || echo "WARN: Run 'npx simple-git-hooks' to install hooks manually."
 
 
+
+
 echo "INFO: Setting up goose configuration and MCP servers..."
 
 # Create goose config directory
@@ -110,11 +124,8 @@ ensure_goose_extension "circleci" '  circleci:
     type: stdio
     name: circleci
     enabled: true
-    cmd: npx
-    args: ["-y", "@circleci/mcp-server-circleci"]
-    env:
-      CIRCLECI_TOKEN: "${CIRCLECI_TOKEN}"
-      CIRCLE_API_TOKEN: "${CIRCLE_API_TOKEN}"
+    cmd: doppler
+    args: ["run", "--", "npx", "-y", "@circleci/mcp-server-circleci"]
     timeout: 300
 '
 
@@ -143,4 +154,6 @@ if ! pgrep -x tailscaled > /dev/null; then
     sudo start-stop-daemon --start --background --oknodo --pidfile /var/run/tailscaled.pid --make-pidfile --exec /usr/sbin/tailscaled -- --state=/var/lib/tailscale/tailscaled.state
 fi
 
-echo "INFO: Custom container setup script finished."
+echo -e "\nINFO: Custom container setup script finished."
+echo -e "\n⚠️  To complete cloud login, run:"
+echo "    cd /workspaces/nas-port-mcp && bash scripts/cloud_login.sh"
