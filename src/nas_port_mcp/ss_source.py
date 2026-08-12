@@ -13,7 +13,7 @@ _LINE_RE = re.compile(
     r"(?P<state>\S+)\s+"
     r"\d+\s+\d+\s+"
     r"(?P<local>\S+)\s+"
-    r'(?P<peer>\S+)(?:\s+users:\(\\("(?P<proc>[^"]*)"[^)]*\)\))?'
+    r'(?P<peer>\S+)(?:\s+users:\(\("(?P<proc>[^"]*)"[^)]*\)\))?'
 )
 
 
