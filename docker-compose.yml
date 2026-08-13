@@ -20,6 +20,7 @@ services:
       # Set your environment variables here or in a NAS-side .env file
       # (genproj never commits secrets). See .env.example.
       MCP_PORT: ${MCP_PORT:-3001}
+      MCP_HOST: ${MCP_HOST:-0.0.0.0}
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
       - "homepage.group=Services"
