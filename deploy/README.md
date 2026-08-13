@@ -69,17 +69,28 @@ enable the `homepage` Docker provider) to show a health widget for the service.
 
 `nas-port-mcp` has **no auth** — the tailnet is the security boundary. The
 entrypoint (`scripts/entrypoint.sh`) binds mcpo to `127.0.0.1:3001` (loopback
-only), so it is NOT reachable on the LAN. Expose it over the tailnet with
-`tailscale serve`, run on the NAS host (same pattern as parquet-peek §8):
+only), so it is NOT reachable on the LAN. Expose it over the tailnet with a
+path rule on the NAS node's existing `tailscale serve` (OpenClaw Control owns
+the root; run this once on the NAS host — it persists across redeploys):
 
 ```bash
-tailscale serve --bg http://127.0.0.1:3001
+tailscale serve --bg --set-path /nas-port-mcp http://127.0.0.1:3001
 ```
 
-- **MCP clients** (Streamable HTTP): `https://nas-port-mcp.<tailnet>.ts.net/nas-port-mcp`
-  (path is the `mcpServers` key from `config.json`)
-- **OpenAPI schema**: `https://nas-port-mcp.<tailnet>.ts.net/openapi.json`
-  (also used by the Homepage widget at `http://localhost:3001/`)
+Tailscale strips the path prefix and forwards the remainder to the backend;
+mcpo (config mode) mounts the server under its `mcpServers` key, hence the
+double `/nas-port-mcp` path. Verified URLs (tailnet `tail86fd19.ts.net`):
+
+- **Tool calls**: `https://nas.tail86fd19.ts.net/nas-port-mcp/nas-port-mcp/<tool>`
+  (e.g. `POST .../suggest_port`)
+- **OpenAPI schema** (for Open WebUI / OpenAPI clients):
+  `https://nas.tail86fd19.ts.net/nas-port-mcp/nas-port-mcp/openapi.json`
+- **Docs**: `https://nas.tail86fd19.ts.net/nas-port-mcp/docs`
+- **Homepage widget / healthcheck**: `http://localhost:3001/openapi.json`
+  (loopback on the NAS host — unaffected by the bind change)
+
+Note: an older `/ports` path rule pointing at the same backend is equivalent
+(`https://nas.tail86fd19.ts.net/ports/nas-port-mcp/...`); keep at most one.
 
 Do **NOT** bind `0.0.0.0` — that exposes the unauthenticated MCP server to the
 whole LAN. If a client must reach it without Tailscale, front it with an
