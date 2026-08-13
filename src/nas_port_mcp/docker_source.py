@@ -26,10 +26,13 @@ def collect_docker_ports(socket_path: str = DOCKER_SOCKET) -> list[dict]:
     for c in containers:
         name = (c.get("Names") or ["unknown"])[0].lstrip("/")
         for p in c.get("Ports") or []:
-            host_port = p.get("HostPort")
-            if not host_port:
+            # GET /containers/json reports published ports with
+            # PublicPort/IP; the per-container inspect endpoint uses
+            # HostPort/HostIp. Accept both shapes.
+            host_port = p.get("PublicPort") or p.get("HostPort")
+            if host_port is None:
                 continue
-            host_ip = p.get("HostIp") or "0.0.0.0"
+            host_ip = p.get("IP") or p.get("HostIp") or "0.0.0.0"
             ports.append(
                 {
                     "port": int(host_port),
