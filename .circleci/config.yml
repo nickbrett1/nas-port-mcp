@@ -19,11 +19,18 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-venv-{{ checksum "pyproject.toml" }}
-            - v1-venv-
+            - v2-venv-{{ checksum "pyproject.toml" }}
+            - v2-venv-
       - run:
           name: Install Packages
           command: |
+            # A restored .venv cache can be stale: its bin/python3 symlink may
+            # point at an interpreter that no longer exists once the base image
+            # is rebuilt, which breaks `python3 -m venv .venv`. Recreate the
+            # venv from scratch if the cached one is unusable.
+            if ! .venv/bin/python3 --version >/dev/null 2>&1; then
+              rm -rf .venv
+            fi
             python3 -m venv .venv
             echo '. .venv/bin/activate' >> "$BASH_ENV"
             pip install --upgrade pip
@@ -31,7 +38,7 @@ jobs:
       - save_cache:
           paths:
             - .venv
-          key: v1-venv-{{ checksum "pyproject.toml" }}
+          key: v2-venv-{{ checksum "pyproject.toml" }}
 
 
       - run:
