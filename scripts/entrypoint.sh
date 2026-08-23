@@ -3,9 +3,9 @@
 # (Streamable HTTP). Host networking means mcpo binds directly on the host.
 #
 # This server has NO auth — the tailnet is the security boundary. By default
-# we bind 0.0.0.0 so the MagicDNS hostname (nas.tail*.ts.net:3001) is
+# we bind 0.0.0.0 so the MagicDNS hostname (<host>.<tailnet>.ts.net:3001) is
 # reachable from tailnet clients like Open WebUI. For strict tailnet-only
-# exposure, set MCP_HOST=<tailnet-ip> (e.g. 100.82.223.13) in the NAS .env.
+# exposure, set MCP_HOST=<tailnet-ip> (e.g. <your-tailnet-ip>) in the NAS .env.
 set -euo pipefail
 
 : "${MCP_PORT:=3001}"
