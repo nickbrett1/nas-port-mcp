@@ -79,18 +79,19 @@ tailscale serve --bg --set-path /nas-port-mcp http://127.0.0.1:3001
 
 Tailscale strips the path prefix and forwards the remainder to the backend;
 mcpo (config mode) mounts the server under its `mcpServers` key, hence the
-double `/nas-port-mcp` path. Verified URLs (tailnet `tail86fd19.ts.net`):
+double `/nas-port-mcp` path. Verified URLs (replace `<host>.<tailnet>.ts.net`
+with your MagicDNS hostname):
 
-- **Tool calls**: `https://nas.tail86fd19.ts.net/nas-port-mcp/nas-port-mcp/<tool>`
+- **Tool calls**: `https://<host>.<tailnet>.ts.net/nas-port-mcp/nas-port-mcp/<tool>`
   (e.g. `POST .../suggest_port`)
 - **OpenAPI schema** (for Open WebUI / OpenAPI clients):
-  `https://nas.tail86fd19.ts.net/nas-port-mcp/nas-port-mcp/openapi.json`
-- **Docs**: `https://nas.tail86fd19.ts.net/nas-port-mcp/docs`
+  `https://<host>.<tailnet>.ts.net/nas-port-mcp/nas-port-mcp/openapi.json`
+- **Docs**: `https://<host>.<tailnet>.ts.net/nas-port-mcp/docs`
 - **Homepage widget / healthcheck**: `http://localhost:3001/openapi.json`
   (loopback on the NAS host — unaffected by the bind change)
 
 Note: an older `/ports` path rule pointing at the same backend is equivalent
-(`https://nas.tail86fd19.ts.net/ports/nas-port-mcp/...`); keep at most one.
+(`https://<host>.<tailnet>.ts.net/ports/nas-port-mcp/...`); keep at most one.
 
 Do **NOT** bind `0.0.0.0` — that exposes the unauthenticated MCP server to the
 whole LAN. If a client must reach it without Tailscale, front it with an
@@ -99,7 +100,7 @@ authenticating reverse proxy instead of widening the bind.
 ## 7. Data mounts
 
 Configure `dataMounts` in the genproj configuration to mount host directories
-into the container, e.g. `[{ "hostPath": "/volume1/marketdata", "containerPath": "/data", "readOnly": true }]`.
+into the container, e.g. `[{ "hostPath": "<DATA_DIR>", "containerPath": "/data", "readOnly": true }]`.
 They are emitted into the compose `volumes:` section (read-only by default).
 
 ## 8. Healthchecks, env vars and system packages
