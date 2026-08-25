@@ -33,6 +33,11 @@ jobs:
             fi
             python3 -m venv .venv
             echo '. .venv/bin/activate' >> "$BASH_ENV"
+            # IMPORTANT: activate NOW so pip installs INTO .venv. Without this,
+            # bare `pip` resolves to the base interpreter and the venv stays
+            # empty — bare `python` then can't import mcpo/FastMCP/nas_port_mcp
+            # even though ruff/pytest still work via PATH fallback.
+            . .venv/bin/activate
             pip install --upgrade pip
             pip install -e ".[dev]"
       - save_cache:
