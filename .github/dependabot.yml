@@ -8,3 +8,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # mcp 2.x removes mcp.server.fastmcp and renames client helpers that mcpo
+    # 0.0.20 imports (streamablehttp_client), crashing at startup. Ignore major
+    # bumps so dependabot can't re-loosen our <2.0.0 pin (see pyproject.toml).
+    ignore:
+      - dependency-name: "mcp"
+        versions: [">=2.0.0"]
