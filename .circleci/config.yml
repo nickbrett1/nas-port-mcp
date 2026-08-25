@@ -48,6 +48,33 @@ jobs:
           name: Test (pytest)
           command: pytest -v
 
+      - run:
+          name: Runtime smoke test (mcpo + FastMCP boot)
+          command: |
+            # Regression guard: Dependabot loosened mcp to <3.0.0 and mcp 2.x
+            # removed mcp.server.fastmcp + renamed client helpers that mcpo 0.0.20
+            # imports (streamablehttp_client -> streamable_http_client). Build,
+            # lint and pytest never import mcpo or FastMCP, so that crash only
+            # showed up at container runtime. Here we import-check both entrypoints,
+            # then boot mcpo for real and probe its HTTP endpoint.
+            python -c "import mcpo.main"
+            python -c "from nas_port_mcp.server import mcp"
+            PORT=39001
+            LOG=/tmp/mcpo-boot.log
+            mcpo --config config.json --host 127.0.0.1 --port "$PORT" >"$LOG" 2>&1 &
+            MCPO_PID=$!
+            trap 'kill $MCPO_PID 2>/dev/null || true' EXIT
+            for i in $(seq 1 30); do
+              if curl -fsS "http://127.0.0.1:$PORT/openapi.json" >/dev/null 2>&1; then
+                echo "MCP server boot smoke test OK (mcpo + FastMCP runtime)"
+                exit 0
+              fi
+              sleep 1
+            done
+            echo "MCP server did not become ready on :$PORT" >&2
+            tail -40 "$LOG" >&2 || true
+            exit 1
+
 
 
   docker-publish:
