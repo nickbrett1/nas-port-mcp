@@ -14,3 +14,8 @@ updates:
     ignore:
       - dependency-name: "mcp"
         versions: [">=2.0.0"]
+      # FastAPI 0.145.0 dropped the **extra catch-all that was absorbing the
+      # ssl_certfile/ssl_keyfile kwargs mcpo 0.0.20 passes into FastAPI().
+      # Ignore bumps past the pin in pyproject.toml (see comment there).
+      - dependency-name: "fastapi"
+        versions: [">=0.145.0"]
